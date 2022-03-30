@@ -21,6 +21,6 @@ class BlogGallery extends Model
 
     public function photo()
     {
-        return $this->belongsTo(Photo::class, 'photos_id', 'id');
+        return $this->hasMany(Photo::class, 'id', 'photos_id');
     }
 }
