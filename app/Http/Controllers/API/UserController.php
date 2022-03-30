@@ -19,7 +19,7 @@ class UserController extends Controller
     //
     public function register(Request $request)
     {
-        try{
+        try {
             $request->validate(
                 [
                     'name' => ['required', 'string', 'max:255'],
@@ -42,7 +42,7 @@ class UserController extends Controller
                 'token_type' => 'Bearer',
                 'user' => $user,
             ], 'User Teregistrasi');
-        } catch(Exception $e) {
+        } catch (Exception $e) {
             return ResponseFormatter::error([
                 'message' => 'Something went wrong',
                 'error' => $e,
@@ -52,7 +52,7 @@ class UserController extends Controller
 
     public function login(Request $request)
     {
-        try{
+        try {
             $request->validate(
                 [
                     'email' => ['required', 'email'],
@@ -60,27 +60,16 @@ class UserController extends Controller
                 ]
             );
 
-            $user = User::where('email', $request->email)->first();
-            if(!$user) {
-                return ResponseFormatter::error([
-                    'message' => 'User not found',
-                ], 'Authentication Error', 404);
+            if (Auth::guard()->attempt($request->only('email', 'password'))) {
+                $request->session()->regenerate();
+
+                return response()->json([], 204);
             }
 
-            if(!Hash::check($request->password, $user->password)) {
-                return ResponseFormatter::error([
-                    'message' => 'Password not match',
-                ], 'Authentication Error', 401);
-            }
-
-            $tokenData = $user->createToken('authToken')->plainTextToken;
-
-            return ResponseFormatter::success([
-                'access_token' => $tokenData,
-                'token_type' => 'Bearer',
-                'user' => $user,
-            ], 'User Login');
-        } catch(Exception $e) {
+            return ResponseFormatter::error([
+                'message' => 'invalid email or password',
+            ], 'Authentication Error', 401);
+        } catch (Exception $e) {
             return ResponseFormatter::error([
                 'message' => 'Something went wrong',
                 'error' => $e->getMessage(),
@@ -90,12 +79,12 @@ class UserController extends Controller
 
     public function getUserData()
     {
-        try{
+        try {
             $user = Auth::user();
             return ResponseFormatter::success([
                 'user' => $user,
             ], 'User Data');
-        } catch(Exception $e) {
+        } catch (Exception $e) {
             return ResponseFormatter::error([
                 'message' => 'Something went wrong',
                 'error' => $e->getMessage(),
@@ -105,8 +94,7 @@ class UserController extends Controller
 
     public function editProfile(Request $request)
     {
-        try
-        {
+        try {
             $request->validate(
                 [
                     'name' => ['required', 'string', 'max:255'],
@@ -122,9 +110,7 @@ class UserController extends Controller
             return ResponseFormatter::success([
                 'user' => $user
             ], 'User Data');
-
-        }catch(Exception $e)
-        {
+        } catch (Exception $e) {
             return ResponseFormatter::error([
                 'message' => 'Something went wrong',
                 'error' => $e->getMessage(),
@@ -132,16 +118,19 @@ class UserController extends Controller
         }
     }
 
-    public function logout()
+    public function verifyLogin()
     {
-        try{
-            auth()->user()->tokens()->delete();
-            return ResponseFormatter::success([], 'User Logout');
-        } catch(Exception $e) {
-            return ResponseFormatter::error([
-                'message' => 'Something went wrong',
-                'error' => $e->getMessage(),
-            ], 'Authentication Error', 500);
-        }
+        return response()->json([], 204);
+    }
+
+    public function logout(Request $request)
+    {
+        Auth::guard()->logout();
+
+        $request->session()->invalidate();
+
+        $request->session()->regenerateToken();
+
+        return response()->json([], 204);
     }
 }
