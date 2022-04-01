@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\CategoryController;
+use App\Http\Controllers\API\PhotoController;
 use Illuminate\Support\Facades\Artisan;
 
 /*
@@ -29,6 +30,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/admins', [UserController::class, 'getUserData']);
     Route::post('/admin/categories', [CategoryController::class, 'createCategory']);
     Route::get('/admin/getrecentblog', [BlogController::class, 'getRecentDataBlog']);
+
+    Route::post('/admin/photos', [PhotoController::class, 'uploadPhoto']);
 });
 Route::get('/blog/{id}', [BlogController::class, 'getDetailBlog']);
 

@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class BlogCategory extends Model
+class Comment extends Model
 {
     use HasFactory;
 
@@ -15,12 +15,14 @@ class BlogCategory extends Model
      * @var string[]
      */
     protected $fillable = [
+        'comment',
         'name',
-        'short_description',
+        'star',
+        'blogs_id',
     ];
 
     public function blog()
-    {
-        return $this->hasMany(Blog::class, 'blog_categories_id', 'id');
+    {   
+        return $this->belongsTo(Blog::class, 'blogs_id', 'id');
     }
 }

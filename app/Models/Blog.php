@@ -36,4 +36,9 @@ class Blog extends Model
     {
         return $this->hasMany(BlogGallery::class, 'blogs_id', 'id');
     }
+
+    public function blog_comments()
+    {
+        return $this->hasMany(Comment::class, 'blogs_id', 'id');
+    }
 }
