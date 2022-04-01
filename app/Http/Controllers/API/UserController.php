@@ -63,7 +63,11 @@ class UserController extends Controller
             if (Auth::guard()->attempt($request->only('email', 'password'))) {
                 $request->session()->regenerate();
 
-                return response()->json([], 204);
+                return ResponseFormatter::success([
+                    'access_token' => Auth::user()->createToken('authToken')->plainTextToken,
+                    'token_type' => 'Bearer',
+                    'user' => Auth::user(),
+                ], 'User Login');
             }
 
             return ResponseFormatter::error([
