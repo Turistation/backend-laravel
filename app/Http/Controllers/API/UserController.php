@@ -63,11 +63,7 @@ class UserController extends Controller
             if (Auth::guard()->attempt($request->only('email', 'password'))) {
                 $request->session()->regenerate();
 
-                return ResponseFormatter::success([
-                    'access_token' => Auth::user()->createToken('authToken')->plainTextToken,
-                    'token_type' => 'Bearer',
-                    'user' => Auth::user(),
-                ], 'User Login');
+                return ResponseFormatter::success([], 'user successfully logged in');
             }
 
             return ResponseFormatter::error([
@@ -135,6 +131,6 @@ class UserController extends Controller
 
         $request->session()->regenerateToken();
 
-        return response()->json([], 204);
+        return ResponseFormatter::success([], 'user successfully logged out');
     }
 }
