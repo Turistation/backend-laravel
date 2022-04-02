@@ -41,6 +41,8 @@ Route::post('/admin/logins', [UserController::class, 'login']);
 Route::post('/admin/logouts', [UserController::class, 'logout']);
 Route::get('/admin/blogs', [BlogController::class, 'getRecentAddedBlog']);
 
+Route::get('/categories', [CategoryController::class, 'showCategory']);
+
 // blog exception to count total visitor when visited detail blog.
 Route::post('/blog/exceptions/{id}', [BlogController::class, 'sumTotalVisitor']);
 
