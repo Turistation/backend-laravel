@@ -13,11 +13,10 @@ class CategoryController extends Controller
     //
     public function createCategory(Request $request)
     {
-        try{
+        try {
             $request->validate(
                 [
                     'name' => ['required', 'string', 'max:255'],
-                    'short_description' => ['required', 'string'],
                 ]
             );
             $data = $request->all();
@@ -25,27 +24,24 @@ class CategoryController extends Controller
             return ResponseFormatter::success([
                 'category' => $category,
             ], 'Category Created');
-        }catch(Exception $e)
-        {
+        } catch (Exception $e) {
             return ResponseFormatter::error([
                 'message' => 'Something went wrong',
                 'error' => $e,
             ], 'Authentication Error', 500);
         }
-
     }
 
     public function deleteCategory(Request $request)
     {
-        try{
+        try {
 
             $category = BlogCategory::findOrFail($request->route('id'));
             $category->delete();
             return ResponseFormatter::success([
                 'message' => 'Category Deleted',
             ], 'Category Deleted');
-        }catch(Exception $e)
-        {
+        } catch (Exception $e) {
             return ResponseFormatter::error([
                 'message' => 'Something went wrong',
                 'error' => $e,
@@ -55,7 +51,7 @@ class CategoryController extends Controller
 
     public function editCategory(Request $request)
     {
-        try{
+        try {
             $request->validate(
                 [
                     'name' => ['required', 'string', 'max:255'],
@@ -68,8 +64,7 @@ class CategoryController extends Controller
             return ResponseFormatter::success([
                 'message' => 'Category Edited',
             ], 'Category Edited');
-        }catch(Exception $e)
-        {
+        } catch (Exception $e) {
             return ResponseFormatter::error([
                 'message' => 'Something went wrong',
                 'error' => $e,
@@ -79,13 +74,12 @@ class CategoryController extends Controller
 
     public function showCategory()
     {
-        try{
+        try {
             $categories = BlogCategory::all();
             return ResponseFormatter::success([
                 'categories' => $categories,
             ], 'Categories Found');
-        }catch(Exception $e)
-        {
+        } catch (Exception $e) {
             return ResponseFormatter::error([
                 'message' => 'Something went wrong',
                 'error' => $e,
@@ -95,13 +89,12 @@ class CategoryController extends Controller
 
     public function showCategoryById(Request $request)
     {
-        try{
+        try {
             $category = BlogCategory::findOrFail($request->route('id'));
             return ResponseFormatter::success([
                 'category' => $category,
             ], 'Category Found');
-        }catch(Exception $e)
-        {
+        } catch (Exception $e) {
             return ResponseFormatter::error([
                 'message' => 'Something went wrong',
                 'error' => $e,
