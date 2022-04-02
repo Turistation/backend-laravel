@@ -11,8 +11,7 @@ use Exception;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Fortify\Rules\Password;
 use Illuminate\Support\Facades\Auth;
-
-
+use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
@@ -20,13 +19,16 @@ class UserController extends Controller
     public function register(Request $request)
     {
         try {
-            $request->validate(
-                [
-                    'name' => ['required', 'string', 'max:255'],
-                    'email' => ['required', 'string', 'max:255', 'email'],
-                    'password' => ['required', 'string', new Password],
-                ]
-            );
+            $rules = [
+                'name' => ['required', 'string', 'max:255'],
+                'email' => ['required', 'string', 'max:255', 'email'],
+                'password' => ['required', 'string', new Password],
+            ];
+
+            $validator = Validator::make($request->all(), $rules);
+            if ($validator->fails()) {
+                return ResponseFormatter::error($validator->errors()->all(), 'Validation Error', 422);
+            }
 
             User::create([
                 'name' => $request->name,
@@ -53,12 +55,16 @@ class UserController extends Controller
     public function login(Request $request)
     {
         try {
-            $request->validate(
-                [
-                    'email' => ['required', 'email'],
-                    'password' => ['required'],
-                ]
-            );
+            $rules = [
+                'email' => ['required', 'email'],
+                'password' => ['required'],
+            ];
+
+            $validator = Validator::make($request->all(), $rules);
+            if ($validator->fails()) {
+                return ResponseFormatter::error($validator->errors()->all(), 'Validation Error', 422);
+            }
+
 
             if (Auth::guard()->attempt($request->only('email', 'password'))) {
                 $request->session()->regenerate();
@@ -95,13 +101,17 @@ class UserController extends Controller
     public function editProfile(Request $request)
     {
         try {
-            $request->validate(
-                [
-                    'name' => ['required', 'string', 'max:255'],
-                    'email' => ['required', 'string', 'max:255', 'email'],
-                    'password' => ['required', 'string', new Password],
-                ]
-            );
+            $rules = [
+                'name' => ['required', 'string', 'max:255'],
+                'email' => ['required', 'string', 'max:255', 'email'],
+                'password' => ['required', 'string', new Password],
+            ];
+
+            $validator = Validator::make($request->all(), $rules);
+            if ($validator->fails()) {
+                return ResponseFormatter::error($validator->errors()->all(), 'Validation Error', 422);
+            }
+
 
             $data = $request->all();
             $user = Auth::user();

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\BlogCategory;
 use Exception;
 use App\Helpers\ResponseFormatter;
+use Illuminate\Support\Facades\Validator;
 
 class CategoryController extends Controller
 {
@@ -14,11 +15,15 @@ class CategoryController extends Controller
     public function createCategory(Request $request)
     {
         try {
-            $request->validate(
-                [
-                    'name' => ['required', 'string', 'max:255'],
-                ]
-            );
+            $rules = [
+                'name' => ['required', 'string'],
+            ];
+
+            $validator = Validator::make($request->all(), $rules);
+            if ($validator->fails()) {
+                return ResponseFormatter::error($validator->errors()->all(), 'Validation Error', 422);
+            }
+
             $data = $request->all();
             $category = BlogCategory::create($data);
             return ResponseFormatter::success([

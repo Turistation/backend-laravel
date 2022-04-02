@@ -14,19 +14,18 @@ use Illuminate\Support\Facades\Auth;
 use Yish\Imgur\Facades\Upload as Imgur;
 
 use Illuminate\Support\Facades\DB;
-
-
+use Illuminate\Support\Facades\Validator;
 
 class BlogController extends Controller
 {
     //untuk di detail page FE
     public function getDetailBlog(Request $request)
     {
-        try{
+        try {
             //get relation
             $blog = Blog::with(['blog_category', 'admin_blog', 'blog_gallery.photo', 'blog_comments'])->findOrFail($request->route('id'));
 
-            if(!$blog) {
+            if (!$blog) {
                 return ResponseFormatter::error([
                     'message' => 'Blog not found',
                 ], 'Blog Not Found', 404);
@@ -35,7 +34,7 @@ class BlogController extends Controller
             return ResponseFormatter::success([
                 'blog' => $blog,
             ], 'Blog Found');
-        } catch(Exception $e) {
+        } catch (Exception $e) {
             return ResponseFormatter::error([
                 'message' => 'Something went wrong',
                 'error' => $e->getMessage(),
@@ -71,26 +70,41 @@ class BlogController extends Controller
     // untuk admin create blog.
     public function createBlog(Request $request)
     {
-        try{
-            $request->validate(
-                [
-                    'title' => ['required', 'string', 'max:255'],
-                    'description' => ['required', 'string', 'max:255'],
-                    'blog_categories_id' => ['required', 'integer'],
-                    'image' => ['required'],
-                ]
-            );
+        try {
+
+            $rules = [
+                'title' => ['required', 'string'],
+                'description' => ['required', 'string'],
+                'blog_categories_id' => ['required', 'integer'],
+                'images' => ['required'],
+                'images.*' => ['image', 'mimes:jpg,png,jpeg,gif,svg']
+            ];
+
+            $validator = Validator::make($request->all(), $rules);
+
+            if ($validator->fails()) {
+                return ResponseFormatter::error([
+                    'message' => 'Validation Failed',
+                    'error' => $validator->errors(),
+                ], 'Validation Failed', 422);
+            }
+
+            if (!$request->hasFile('images')) {
+                return ResponseFormatter::error([
+                    'message' => 'Images not found',
+                ], 'Images Not Found', 422);
+            }
 
             // if request image is array then , loop it and upload one by one
-            $images = [];
-            if(is_array($request->image)) {
-                foreach($request->image as $img) {
-                    $imgData = Imgur::upload($img);
-                    array_push($images, $imgData->link());
-                }
-            } else {
-                $imgData = Imgur::upload($request->image);
-                array_push($images, $imgData->link());
+            $images = $request->file('images');
+            error_log(print_r($images, true));
+            $photos = [];
+            foreach ($images as $image) {
+                $imgurData = Imgur::upload($image);
+                $data = Photo::create([
+                    'photos' => $imgurData->link(),
+                ]);
+                $photos[] = $data;
             }
 
             DB::beginTransaction();
@@ -100,14 +114,10 @@ class BlogController extends Controller
                 'blog_categories_id' => $request->blog_categories_id,
                 'admins_id' => Auth::user()->id,
             ]);
-            foreach($images as $img) {
-                $data = Photo::create([
-                    'photos' => $img,
-                ]);
-
+            foreach ($photos as $img) {
                 BlogGallery::create([
                     'blogs_id' => $blog->id,
-                    'photos_id' => $data->id,
+                    'photos_id' => $img->id,
                 ]);
             }
             DB::commit();
@@ -115,8 +125,7 @@ class BlogController extends Controller
             return ResponseFormatter::success([
                 'blog' => $blog,
             ], 'Blog Created');
-        }catch(Exception $e)
-        {
+        } catch (Exception $e) {
             DB::rollBack();
             return ResponseFormatter::error([
                 'message' => 'Something went wrong',
@@ -129,12 +138,11 @@ class BlogController extends Controller
     // untuk admin delete blog.
     public function deleteBlog(Request $request)
     {
-        try{
+        try {
             $data = Blog::findOrFail($request->route('id'));
             $data->delete();
             return ResponseFormatter::success([], 'Blog Deleted');
-        } catch (Exception $e)
-        {
+        } catch (Exception $e) {
             return ResponseFormatter::error([
                 'message' => 'Something went wrong',
                 'error' => $e->getMessage(),
@@ -146,7 +154,7 @@ class BlogController extends Controller
     // belum benar perbaiki nanti
     public function editBlog(Request $request)
     {
-        try{
+        try {
             $request->validate(
                 [
                     'title' => ['required', 'string', 'max:255'],
@@ -156,10 +164,10 @@ class BlogController extends Controller
             );
             $data = $request->all();
             $blog = Blog::findOrFail($request->route('id'));
-            if(isset($blog)){
+            if (isset($blog)) {
                 $blog->update($data);
 
-                if(isset($request->image)){
+                if (isset($request->image)) {
                     $imgData = Imgur::upload($request->image);
                     $data = Photo::create([
                         'photos' => $imgData->link(),
@@ -182,8 +190,7 @@ class BlogController extends Controller
                     'message' => 'Blog not found',
                 ], 'Blog Not Found', 404);
             }
-        }catch(Exception $e)
-        {
+        } catch (Exception $e) {
             return ResponseFormatter::error([
                 'message' => 'Something went wrong',
                 'error' => $e->getMessage(),
@@ -194,7 +201,7 @@ class BlogController extends Controller
     // get recent data for admin dashboard
     public function getRecentDataBlog(Request $request)
     {
-        try{
+        try {
             $blogs = Blog::with(['blog_category', 'admin_blog', 'blog_gallery.photo'])->orderBy('created_at', 'desc')->limit(5)->get();
             $totalBlog = Blog::count();
             // get visitor from model and pluck column views and count it
@@ -204,8 +211,7 @@ class BlogController extends Controller
                 'total_blog' => $totalBlog,
                 'total_visitor' => $totalVisitor,
             ], 'Recent Blogs');
-        } catch(Exception $e)
-        {
+        } catch (Exception $e) {
             return ResponseFormatter::error([
                 'message' => 'Something went wrong',
                 'error' => $e->getMessage(),
@@ -215,13 +221,12 @@ class BlogController extends Controller
 
     public function showBlogById(Request $request)
     {
-        try{
+        try {
             $blog = Blog::with(['blog_category', 'admin_blog', 'blog_gallery.photo'])->findOrFail($request->route('id'));
             return ResponseFormatter::success([
                 'blog' => $blog,
             ], 'Blog Found');
-        } catch(Exception $e)
-        {
+        } catch (Exception $e) {
             return ResponseFormatter::error([
                 'message' => 'Something went wrong',
                 'error' => $e->getMessage(),
