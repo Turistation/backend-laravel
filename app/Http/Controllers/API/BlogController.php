@@ -26,8 +26,6 @@ class BlogController extends Controller
             //get relation
             $blog = Blog::with(['blog_category', 'admin_blog', 'blog_comments', 'photos'])->findOrFail($request->route('id'));
 
-
-
             return ResponseFormatter::success([
                 'blog' => $blog,
             ], 'Blog Found');
@@ -210,7 +208,7 @@ class BlogController extends Controller
     public function getRecentDataBlog(Request $request)
     {
         try {
-            $blogs = Blog::with(['blog_category', 'admin_blog', 'blog_gallery.photo'])->orderBy('created_at', 'desc')->limit(5)->get();
+            $blogs = Blog::with(['blog_category', 'admin_blog', 'photos'])->orderBy('created_at', 'desc')->limit(6)->get();
             $totalBlog = Blog::count();
             // get visitor from model and pluck column views and count it
             $totalVisitor = Visitor::pluck('total_view')->count();
@@ -224,25 +222,6 @@ class BlogController extends Controller
                 'message' => 'Something went wrong',
                 'error' => $e->getMessage(),
             ], 'Blog Not Found', 404);
-        }
-    }
-
-    public function showBlogById(Request $request)
-    {
-        try {
-            $blog = Blog::with(['blog_category', 'admin_blog', 'photos'])->findOrFail($request->route('id'));
-            return ResponseFormatter::success([
-                'blog' => $blog,
-            ], 'Blog Found');
-        } catch (ModelNotFoundException $e) {
-            return ResponseFormatter::error([
-                'message' => 'Blog not found',
-            ], 'Blog Not Found', 404);
-        } catch (Exception $e) {
-            return ResponseFormatter::error([
-                'message' => 'Something went wrong',
-                'error' => $e->getMessage(),
-            ], 'Blog Not Found', 500);
         }
     }
 
