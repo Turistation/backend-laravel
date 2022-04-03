@@ -15,7 +15,7 @@ class AddShortDescriptionFieldToCategory extends Migration
     {
         Schema::table('blog_categories', function (Blueprint $table) {
             //
-            $table->longText('short_description');
+            $table->string('short_description')->default('default');
         });
     }
 

@@ -9,6 +9,7 @@ use App\Models\BlogGallery;
 use App\Models\Visitor;
 use App\Helpers\ResponseFormatter;
 use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Yish\Imgur\Facades\Upload as Imgur;
@@ -23,17 +24,18 @@ class BlogController extends Controller
     {
         try {
             //get relation
-            $blog = Blog::with(['blog_category', 'admin_blog', 'blog_gallery.photo', 'blog_comments'])->findOrFail($request->route('id'));
+            $blog = Blog::with(['blog_category', 'admin_blog', 'blog_comments', 'photos'])->findOrFail($request->route('id'));
 
-            if (!$blog) {
-                return ResponseFormatter::error([
-                    'message' => 'Blog not found',
-                ], 'Blog Not Found', 404);
-            }
+
 
             return ResponseFormatter::success([
                 'blog' => $blog,
             ], 'Blog Found');
+        } catch (ModelNotFoundException $e) {
+            return ResponseFormatter::error([
+                'message' => 'Blog not found',
+                'error' => $e->getMessage(),
+            ], 'Blog Not Found', 404);
         } catch (Exception $e) {
             return ResponseFormatter::error([
                 'message' => 'Something went wrong',
@@ -76,7 +78,6 @@ class BlogController extends Controller
                 'title' => ['required', 'string'],
                 'description' => ['required', 'string'],
                 'blog_categories_id' => ['required', 'integer'],
-                'images' => ['required'],
                 'images.*' => ['image', 'mimes:jpg,png,jpeg,gif,svg']
             ];
 
@@ -89,41 +90,48 @@ class BlogController extends Controller
                 ], 'Validation Failed', 422);
             }
 
-            if (!$request->hasFile('images')) {
-                return ResponseFormatter::error([
-                    'message' => 'Images not found',
-                ], 'Images Not Found', 422);
-            }
-
-            // if request image is array then , loop it and upload one by one
-            $images = $request->file('images');
-            error_log(print_r($images, true));
-            $photos = [];
-            foreach ($images as $image) {
-                $imgurData = Imgur::upload($image);
-                $data = Photo::create([
-                    'photos' => $imgurData->link(),
-                ]);
-                $photos[] = $data;
-            }
-
             DB::beginTransaction();
-            $blog = Blog::create([
+            $photos = [];
+            if ($request->has('photos')) {
+                foreach ($request->photos as $photo) {
+
+                    $photos[] = [
+                        "id" => $photo,
+                    ];
+                }
+            } else {
+                if (!$request->hasFile('images')) {
+                    return ResponseFormatter::error([
+                        'message' => 'Images not found',
+                    ], 'Images Not Found', 422);
+                }
+
+                // if request image is array then , loop it and upload one by one
+                $images = $request->file('images');
+
+
+                foreach ($images as $image) {
+                    $imgurData = Imgur::upload($image);
+                    $data = Photo::create([
+                        'photos' => $imgurData->link(),
+                    ]);
+                    $photos[] = $data;
+                }
+            }
+
+            $createdBlog = Blog::create([
                 'title' => $request->title,
                 'description' => $request->description,
                 'blog_categories_id' => $request->blog_categories_id,
                 'admins_id' => Auth::user()->id,
             ]);
             foreach ($photos as $img) {
-                BlogGallery::create([
-                    'blogs_id' => $blog->id,
-                    'photos_id' => $img->id,
-                ]);
+                $createdBlog->photos()->attach($img["id"]);
             }
             DB::commit();
 
             return ResponseFormatter::success([
-                'blog' => $blog,
+                'blog' => $createdBlog,
             ], 'Blog Created');
         } catch (Exception $e) {
             DB::rollBack();
@@ -222,10 +230,29 @@ class BlogController extends Controller
     public function showBlogById(Request $request)
     {
         try {
-            $blog = Blog::with(['blog_category', 'admin_blog', 'blog_gallery.photo'])->findOrFail($request->route('id'));
+            $blog = Blog::with(['blog_category', 'admin_blog', 'photos'])->findOrFail($request->route('id'));
             return ResponseFormatter::success([
                 'blog' => $blog,
             ], 'Blog Found');
+        } catch (ModelNotFoundException $e) {
+            return ResponseFormatter::error([
+                'message' => 'Blog not found',
+            ], 'Blog Not Found', 404);
+        } catch (Exception $e) {
+            return ResponseFormatter::error([
+                'message' => 'Something went wrong',
+                'error' => $e->getMessage(),
+            ], 'Blog Not Found', 500);
+        }
+    }
+
+    public function getAllBlog()
+    {
+        try {
+            $blogs = Blog::with(['blog_category', 'admin_blog', 'photos'])->orderBy('created_at', 'desc')->get();
+            return ResponseFormatter::success([
+                'blogs' => $blogs,
+            ], 'All Blogs');
         } catch (Exception $e) {
             return ResponseFormatter::error([
                 'message' => 'Something went wrong',

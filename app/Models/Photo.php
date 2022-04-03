@@ -17,4 +17,10 @@ class Photo extends Model
     protected $fillable = [
         'photos',
     ];
+
+    public function blogs()
+    {
+        // return $this->hasMany(BlogGallery::class, 'blogs_id', 'id');
+        return $this->belongsToMany(Blog::class, 'blog_photo', 'photo_id', 'blog_id');
+    }
 }

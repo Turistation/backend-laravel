@@ -22,6 +22,11 @@ class Blog extends Model
         'admins_id',
     ];
 
+    public function photos()
+    {
+        return $this->belongsToMany(Photo::class, 'blog_photo', 'blog_id', 'photo_id');
+    }
+
     public function admin_blog()
     {
         return $this->belongsTo(User::class, 'admins_id', 'id');
@@ -32,10 +37,7 @@ class Blog extends Model
         return $this->belongsTo(BlogCategory::class, 'blog_categories_id', 'id');
     }
 
-    public function blog_gallery()
-    {
-        return $this->hasMany(BlogGallery::class, 'blogs_id', 'id');
-    }
+
 
     public function blog_comments()
     {

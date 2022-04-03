@@ -39,9 +39,13 @@ Route::get('/blog/{id}', [BlogController::class, 'getDetailBlog']);
 Route::post('/admin/registers', [UserController::class, 'register']);
 Route::post('/admin/logins', [UserController::class, 'login']);
 Route::post('/admin/logouts', [UserController::class, 'logout']);
-Route::get('/admin/blogs', [BlogController::class, 'getRecentAddedBlog']);
+
+Route::get('/blogs', [BlogController::class, 'getAllBlog']);
+Route::get('/blogs/{id}', [BlogController::class, 'getDetailBlog']);
 
 Route::get('/categories', [CategoryController::class, 'showCategory']);
+
+Route::get('/photos', [PhotoController::class, 'getAllPhotos']);
 
 // blog exception to count total visitor when visited detail blog.
 Route::post('/blog/exceptions/{id}', [BlogController::class, 'sumTotalVisitor']);
