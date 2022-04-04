@@ -32,6 +32,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('/admin/blogs/{id}', [BlogController::class, 'editBlog']);
     Route::get('/admins', [UserController::class, 'getUserData']);
     Route::post('/admin/categories', [CategoryController::class, 'createCategory']);
+    Route::put('/admin/categories/{id}', [CategoryController::class, 'editCategory']);
     Route::post('/admin/photos', [PhotoController::class, 'uploadPhoto']);
 });
 Route::get('/blog/{id}', [BlogController::class, 'getDetailBlog']);
@@ -51,6 +52,7 @@ Route::get('/blogs/{id}', [BlogController::class, 'getDetailBlog']);
 
 
 Route::get('/categories', [CategoryController::class, 'showCategory']);
+Route::get('/categories/{id}', [CategoryController::class, 'showCategoryById']);
 
 Route::get('/photos', [PhotoController::class, 'getAllPhotos']); // sudah include query, tinggal tambahkan /photos?categoriy_id=1 etc.
 

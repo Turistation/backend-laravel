@@ -186,8 +186,10 @@ class BlogController extends Controller
             ];
 
             $data = $request->all();
+            DB::beginTransaction();
+            $blog = Blog::findOrFail($request->route('id'));
 
-            $validator = Validator::make($request->all(), $rules);
+            $validator = Validator::make($data, $rules);
 
             if ($validator->fails()) {
                 return ResponseFormatter::error([
@@ -196,8 +198,7 @@ class BlogController extends Controller
                 ], 'Validation Failed', 422);
             }
 
-            DB::beginTransaction();
-            $blog = Blog::findOrFail($request->route('id'));
+
             $blog->update($data);
             if ($request->has('photos')) {
                 $photos = [];

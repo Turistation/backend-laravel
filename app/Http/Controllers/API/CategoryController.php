@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\BlogCategory;
 use Exception;
 use App\Helpers\ResponseFormatter;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Validator;
 
 class CategoryController extends Controller
@@ -57,18 +58,28 @@ class CategoryController extends Controller
     public function editCategory(Request $request)
     {
         try {
-            $request->validate(
-                [
-                    'name' => ['required', 'string', 'max:255'],
-                ]
-            );
+            $rules = [
+                'name' => ['required', 'string'],
+            ];
+
+            $category = BlogCategory::findOrFail($request->route('id'));
+
+            $validator = Validator::make($request->all(), $rules);
+            if ($validator->fails()) {
+                return ResponseFormatter::error($validator->errors()->all(), 'Validation Error', 422);
+            }
             $data = $request->all();
-            $category = BlogCategory::find($request->route('id'));
+
             $category->name = $data['name'];
             $category->save();
             return ResponseFormatter::success([
                 'message' => 'Category Edited',
             ], 'Category Edited');
+        } catch (ModelNotFoundException $e) {
+            return ResponseFormatter::error([
+                'message' => 'category not found',
+                'error' => $e->getMessage(),
+            ], 'Category Not Found', 404);
         } catch (Exception $e) {
             return ResponseFormatter::error([
                 'message' => 'Something went wrong',
@@ -99,6 +110,11 @@ class CategoryController extends Controller
             return ResponseFormatter::success([
                 'category' => $category,
             ], 'Category Found');
+        } catch (ModelNotFoundException $e) {
+            return ResponseFormatter::error([
+                'message' => 'category not found',
+                'error' => $e->getMessage(),
+            ], 'Category Not Found', 404);
         } catch (Exception $e) {
             return ResponseFormatter::error([
                 'message' => 'Something went wrong',
