@@ -128,6 +128,7 @@ class BlogController extends Controller
                     $imgurData = Imgur::upload($image);
                     $data = Photo::create([
                         'photos' => $imgurData->link(),
+                        'category_id' => $request->blog_categories_id,
                     ]);
                     $photos[] = $data;
                 }
@@ -217,6 +218,7 @@ class BlogController extends Controller
                     $imgurData = Imgur::upload($image);
                     $data = Photo::create([
                         'photos' => $imgurData->link(),
+                        'category_id' => $request->blog_categories_id,
                     ]);
                     $imgur[] = $data;
                 }

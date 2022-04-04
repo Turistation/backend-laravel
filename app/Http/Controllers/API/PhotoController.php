@@ -18,6 +18,7 @@ class PhotoController extends Controller
     public function uploadPhoto(Request $request)
     {
         $rules = [
+            'category_id' => ['required', 'integer'],
             'images' => ['required'],
             'images.*' => ['image', 'mimes:jpg,png,jpeg,gif,svg']
         ];
@@ -44,12 +45,14 @@ class PhotoController extends Controller
                     $imgurData = Imgur::upload($image);
                     $data[] = Photo::create([
                         'photos' => $imgurData->link(),
+                        'category_id' => $request->input('category_id'),
                     ]);
                 }
             } else {
                 $imgurData = Imgur::upload($images);
                 $data[] = Photo::create([
                     'photos' => $imgurData->link(),
+                    'category_id' => $request->input('category_id'),
                 ]);
             }
             DB::commit();
@@ -68,7 +71,7 @@ class PhotoController extends Controller
     }
 
     public function getAllPhotos(Request $request)
-    {   
+    {
         try {
             if ($request->query('category_id')) {
                 $photos = Photo::where('category_id', $request->query('category_id'))->get();
@@ -86,5 +89,4 @@ class PhotoController extends Controller
             ], 'Photos Not Fetched', 500);
         }
     }
-
 }

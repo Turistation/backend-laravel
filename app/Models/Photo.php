@@ -16,6 +16,7 @@ class Photo extends Model
      */
     protected $fillable = [
         'photos',
+        'category_id',
     ];
 
     public function blogs()
