@@ -44,6 +44,7 @@ Route::post('/admin/logouts', [UserController::class, 'logout']);
 
 // comments post
 Route::post('/comments', [CommentController::class, 'postComment']);
+Route::get('/comments/{blogId}', [CommentController::class, 'showCommentByBlogId']);
 
 // blog controller without login
 Route::get('/blogs', [BlogController::class, 'getAllBlog']);
