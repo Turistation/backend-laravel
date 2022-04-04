@@ -177,46 +177,70 @@ class BlogController extends Controller
     public function editBlog(Request $request)
     {
         try {
-            $request->validate(
-                [
-                    'title' => ['required', 'string', 'max:255'],
-                    'description' => ['required', 'string', 'max:255'],
-                    'blog_categories_id' => ['required', 'integer']
-                ]
-            );
+
+            $rules = [
+                'title' => ['required', 'string'],
+                'description' => ['required', 'string'],
+                'blog_categories_id' => ['required', 'integer'],
+                'images.*' => ['image', 'mimes:jpg,png,jpeg,gif,svg']
+            ];
+
             $data = $request->all();
-            $blog = Blog::findOrFail($request->route('id'));
-            if (isset($blog)) {
-                $blog->update($data);
 
-                if (isset($request->image)) {
-                    $imgData = Imgur::upload($request->image);
-                    $data = Photo::create([
-                        'photos' => $imgData->link(),
-                    ]);
-                    BlogGallery::create([
-                        'blogs_id' => $blog->id,
-                        'photos_id' => $data->id,
-                    ]);
+            $validator = Validator::make($request->all(), $rules);
 
-                    return ResponseFormatter::success([
-                        'blog' => $blog,
-                    ], 'Blog Updated with image and galleries.');
-                }
-
-                return ResponseFormatter::success([
-                    'blog' => $blog,
-                ], 'Blog Updated');
-            } else {
+            if ($validator->fails()) {
                 return ResponseFormatter::error([
-                    'message' => 'Blog not found',
-                ], 'Blog Not Found', 404);
+                    'message' => 'Validation Failed',
+                    'error' => $validator->errors(),
+                ], 'Validation Failed', 422);
             }
+
+            DB::beginTransaction();
+            $blog = Blog::findOrFail($request->route('id'));
+            $blog->update($data);
+            if ($request->has('photos')) {
+                $photos = [];
+                foreach ($request->photos as $photo) {
+                    $photos[] = $photo;
+                }
+                $blog->photos()->sync($photos);
+            }
+
+            $imgur = [];
+            if ($request->hasFile('images')) {
+                // if request image is array then , loop it and upload one by one
+                $images = $request->file('images');
+
+                foreach ($images as $image) {
+                    $imgurData = Imgur::upload($image);
+                    $data = Photo::create([
+                        'photos' => $imgurData->link(),
+                    ]);
+                    $imgur[] = $data;
+                }
+            }
+
+            foreach ($imgur as $img) {
+                $blog->photos()->attach($img["id"]);
+            }
+            DB::commit();
+
+            return ResponseFormatter::success([
+                'blog' => $blog,
+            ], 'Blog Updated');
+        } catch (ModelNotFoundException $e) {
+            DB::rollBack();
+            return ResponseFormatter::error([
+                'message' => 'blog not found',
+                'error' => $e->getMessage(),
+            ], 'Blog Not Found', 404);
         } catch (Exception $e) {
+            DB::rollBack();
             return ResponseFormatter::error([
                 'message' => 'Something went wrong',
                 'error' => $e->getMessage(),
-            ], 'Blog Not Found', 404);
+            ], 'Blog Not Created', 500);
         }
     }
 

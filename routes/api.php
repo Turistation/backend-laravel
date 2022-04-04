@@ -29,6 +29,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/verifylogin', [UserController::class, 'verifyLogin']);
     Route::post('/admin/blogs', [BlogController::class, 'createBlog']);
     Route::get('/admin/blogs', [BlogController::class, 'getAllBlog']);
+    Route::put('/admin/blogs/{id}', [BlogController::class, 'editBlog']);
     Route::get('/admins', [UserController::class, 'getUserData']);
     Route::post('/admin/categories', [CategoryController::class, 'createCategory']);
     Route::post('/admin/photos', [PhotoController::class, 'uploadPhoto']);
@@ -41,10 +42,10 @@ Route::post('/admin/logins', [UserController::class, 'login']);
 Route::post('/admin/logouts', [UserController::class, 'logout']);
 
 // comments post
-Route::post('/comments', [CommentController::class , 'postComment']);
+Route::post('/comments', [CommentController::class, 'postComment']);
 
 // blog controller without login
-Route::get('/blogs', [BlogController::class, 'getAllBlogs']);
+Route::get('/blogs', [BlogController::class, 'getAllBlog']);
 Route::get('/blogs/recents', [BlogController::class, 'getRecentDataBlog']);
 Route::get('/blogs/{id}', [BlogController::class, 'getDetailBlog']);
 
