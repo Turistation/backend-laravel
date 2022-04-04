@@ -13,7 +13,7 @@ class AddCategoryIdToPhotos extends Migration
      */
     public function up()
     {
-        Schema::table('Photos', function (Blueprint $table) {
+        Schema::table('photos', function (Blueprint $table) {
             $table->unsignedBigInteger('category_id');
             $table->foreign('category_id')
                 ->references('id')
@@ -28,7 +28,7 @@ class AddCategoryIdToPhotos extends Migration
      */
     public function down()
     {
-        Schema::table('Photos', function (Blueprint $table) {
+        Schema::table('photos', function (Blueprint $table) {
             //
             $table->unsignedBigInteger('category_id');
             $table->foreign('category_id')
