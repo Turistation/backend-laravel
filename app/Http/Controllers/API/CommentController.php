@@ -21,6 +21,7 @@ class CommentController extends Controller
                 'comment' => ['required', 'string', 'max:255'],
                 'name' => ['required', 'string'],
                 'star' => ['required', 'integer'],
+                'blogs_id' => ['required', 'integer'],
             ];
 
             $validator = Validator::make($request->all(), $rules);
@@ -29,12 +30,7 @@ class CommentController extends Controller
             }
 
             $data = $request->all();
-            $comment = Comment::create([
-                'comment' => $data['comment'],
-                'name' => $data['name'],
-                'star' => $data['star'],
-                'blog_id' => $request->route('id'),
-            ]);
+            $comment = Comment::create($data);
 
             return ResponseFormatter::success([
                 'comment' => $comment,
@@ -52,7 +48,7 @@ class CommentController extends Controller
         try {
             $comment = Comment::where('blogs_id', '=', $request->route('blogId'))->get();
             return ResponseFormatter::success([
-                'comment' => $comment,
+                'comments' => $comment,
             ], 'Comment Found');
         } catch (ModelNotFoundException $e) {
             return ResponseFormatter::error([
