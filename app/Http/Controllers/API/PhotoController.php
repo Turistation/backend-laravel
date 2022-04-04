@@ -68,9 +68,13 @@ class PhotoController extends Controller
     }
 
     public function getAllPhotos(Request $request)
-    {
+    {   
         try {
-            $photos = Photo::all();
+            if ($request->query('category_id')) {
+                $photos = Photo::where('category_id', $request->query('category_id'))->get();
+            } else {
+                $photos = Photo::all();
+            }
             return ResponseFormatter::success([
                 'message' => 'Photos fetched successfully',
                 'photos' => $photos,
@@ -82,4 +86,5 @@ class PhotoController extends Controller
             ], 'Photos Not Fetched', 500);
         }
     }
+
 }

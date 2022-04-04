@@ -63,6 +63,22 @@ class BlogController extends Controller
         }
     }
 
+    // get all blog without login
+    public function getAllBlogs(Request $request)
+    {
+        try {
+            $blogs = Blog::with(['blog_category', 'admin_blog', 'photos'])->orderBy('created_at', 'desc')->paginate(10);
+            return ResponseFormatter::success([
+                'blogs' => $blogs,
+            ], 'Blogs Found');
+        } catch (Exception $e) {
+            return ResponseFormatter::error([
+                'message' => 'Something went wrong',
+                'error' => $e->getMessage(),
+            ], 'Blogs Not Found', 500);
+        }
+    }
+
 
 
     //--------------------------//
