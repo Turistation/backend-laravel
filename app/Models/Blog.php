@@ -37,8 +37,6 @@ class Blog extends Model
         return $this->belongsTo(BlogCategory::class, 'blog_categories_id', 'id');
     }
 
-
-
     public function blog_comments()
     {
         return $this->hasMany(Comment::class, 'blogs_id', 'id');

@@ -74,10 +74,32 @@ class PhotoController extends Controller
     {
         try {
             if ($request->query('category_id')) {
-                $photos = Photo::where('category_id', $request->query('category_id'))->get();
+                $photos = Photo::with(['blog_category', 'blogs' => function ($q) {
+                    $q->select('title');
+                }])->where('category_id', $request->query('category_id'))->get();
             } else {
-                $photos = Photo::all();
+                $photos = Photo::with(['blog_category', 'blogs' => function ($q) {
+                    $q->select('title');
+                }])->get();
             }
+            return ResponseFormatter::success([
+                'message' => 'Photos fetched successfully',
+                'photos' => $photos,
+            ], 'Photos Fetched');
+        } catch (Exception $e) {
+            return ResponseFormatter::error([
+                'message' => 'Something went wrong',
+                'error' => $e->getMessage(),
+            ], 'Photos Not Fetched', 500);
+        }
+    }
+
+    public function getRecentPhoto()
+    {
+        try {
+            $photos = Photo::with(['blog_category', 'blogs' => function ($q) {
+                $q->select('title');
+            }])->orderBy('created_at', 'desc')->limit(4)->get();
             return ResponseFormatter::success([
                 'message' => 'Photos fetched successfully',
                 'photos' => $photos,

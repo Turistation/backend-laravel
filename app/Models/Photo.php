@@ -24,4 +24,9 @@ class Photo extends Model
         // return $this->hasMany(BlogGallery::class, 'blogs_id', 'id');
         return $this->belongsToMany(Blog::class, 'blog_photo', 'photo_id', 'blog_id');
     }
+
+    public function blog_category()
+    {
+        return $this->belongsTo(BlogCategory::class, 'category_id', 'id');
+    }
 }

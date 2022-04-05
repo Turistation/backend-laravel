@@ -63,24 +63,6 @@ class BlogController extends Controller
         }
     }
 
-    // get all blog without login
-    public function getAllBlogs(Request $request)
-    {
-        try {
-            $blogs = Blog::with(['blog_category', 'admin_blog', 'photos'])->orderBy('created_at', 'desc')->paginate(10);
-            return ResponseFormatter::success([
-                'blogs' => $blogs,
-            ], 'Blogs Found');
-        } catch (Exception $e) {
-            return ResponseFormatter::error([
-                'message' => 'Something went wrong',
-                'error' => $e->getMessage(),
-            ], 'Blogs Not Found', 500);
-        }
-    }
-
-
-
     //--------------------------//
     // ADMIN SIDE ////////////////
     // untuk admin create blog.
@@ -268,10 +250,47 @@ class BlogController extends Controller
         }
     }
 
-    public function getAllBlog()
+    public function getAllBlog(Request $request)
     {
         try {
-            $blogs = Blog::with(['blog_category', 'admin_blog', 'photos'])->orderBy('created_at', 'desc')->get();
+            $queryParam = $request->query('query');
+            if ($queryParam) {
+                $blogs = Blog::with(['blog_category', 'admin_blog', 'photos', 'blog_comments'])
+                    ->where('title', 'LIKE', '%' . $queryParam . '%')
+                    ->orWhereHas('blog_category', function ($q) use ($queryParam) {
+                        $q->where('name', 'LIKE', '%' . $queryParam . '%');
+                    })
+                    ->orderBy('created_at', 'desc')->paginate(10);
+            } else {
+                $blogs = Blog::with(['blog_category', 'admin_blog', 'photos', 'blog_comments'])->orderBy('created_at', 'desc')->paginate(10);
+            }
+
+            return ResponseFormatter::success([
+                'blogs' => $blogs,
+            ], 'All Blogs');
+        } catch (Exception $e) {
+            return ResponseFormatter::error([
+                'message' => 'Something went wrong',
+                'error' => $e->getMessage(),
+            ], 'Blog Not Found', 404);
+        }
+    }
+
+    public function getAllBlogWithoutPaginate(Request $request)
+    {
+        try {
+            $queryParam = $request->query('query');
+            if ($queryParam) {
+                $blogs = Blog::with(['blog_category', 'admin_blog', 'photos', 'blog_comments'])
+                    ->where('title', 'LIKE', '%' . $queryParam . '%')
+                    ->orWhereHas('blog_category', function ($q) use ($queryParam) {
+                        $q->where('name', 'LIKE', '%' . $queryParam . '%');
+                    })
+                    ->orderBy('created_at', 'desc')->get();
+            } else {
+                $blogs = Blog::with(['blog_category', 'admin_blog', 'photos', 'blog_comments'])->orderBy('created_at', 'desc')->get();
+            }
+
             return ResponseFormatter::success([
                 'blogs' => $blogs,
             ], 'All Blogs');
