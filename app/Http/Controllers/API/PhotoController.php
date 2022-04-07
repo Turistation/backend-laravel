@@ -73,14 +73,16 @@ class PhotoController extends Controller
     public function getAllPhotos(Request $request)
     {
         try {
+            $categoryIdsString = $request->query('category_id');
+            $categoryIds = explode(',', $categoryIdsString);
             if ($request->query('category_id')) {
                 $photos = Photo::with(['blog_category', 'blogs' => function ($q) {
                     $q->select('title');
-                }])->where('category_id', $request->query('category_id'))->get();
+                }])->whereIn('category_id', $categoryIds)->paginate(10);
             } else {
                 $photos = Photo::with(['blog_category', 'blogs' => function ($q) {
                     $q->select('title');
-                }])->get();
+                }])->paginate(10);
             }
             return ResponseFormatter::success([
                 'message' => 'Photos fetched successfully',
