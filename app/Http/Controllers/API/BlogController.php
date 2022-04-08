@@ -46,11 +46,18 @@ class BlogController extends Controller
     public function sumTotalVisitor(Request $request)
     {
         try {
-            $data = Visitor::updateOrCreate([
-                'blogs_id' => $request->route('id'),
-            ], [
-                'total_view' => $request->total_view + 1,
-            ]);
+            $data = Visitor::where('blog_id', $request->route('id'))->first();
+            error_log(print_r($data, true));
+            if ($data) {
+                $data->total_view = $data->total_view + 1;
+                $data->save();
+            } else {
+                $data = Visitor::create([
+                    'blog_id' => $request->route('id'),
+                    'total_view' => 1,
+                ]);
+            }
+
 
             return ResponseFormatter::success([
                 'data' => $data,
@@ -236,7 +243,8 @@ class BlogController extends Controller
             $blogs = Blog::with(['blog_category', 'admin_blog', 'photos'])->orderBy('created_at', 'desc')->limit(6)->get();
             $totalBlog = Blog::count();
             // get visitor from model and pluck column views and count it
-            $totalVisitor = Visitor::pluck('total_view')->count();
+            $totalVisitor = Visitor::sum('total_view');
+
             return ResponseFormatter::success([
                 'blogs' => $blogs,
                 'total_blog' => $totalBlog,
