@@ -8,6 +8,7 @@ use App\Models\Photo;
 use App\Models\BlogGallery;
 use App\Models\Visitor;
 use App\Helpers\ResponseFormatter;
+use Config;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
@@ -261,12 +262,14 @@ class BlogController extends Controller
     public function getAllBlog(Request $request)
     {
         try {
+            $dbDriver = Config::get('database.default');
+            $isPsql = $dbDriver == 'pgsql';
             $queryParam = $request->query('query');
             if ($queryParam) {
                 $blogs = Blog::with(['blog_category', 'admin_blog', 'photos', 'blog_comments'])
-                    ->where('title', 'LIKE', '%' . $queryParam . '%')
-                    ->orWhereHas('blog_category', function ($q) use ($queryParam) {
-                        $q->where('name', 'LIKE', '%' . $queryParam . '%');
+                    ->where('title', $isPsql ? 'ILIKE' : 'LIKE', '%' . strtolower($queryParam) . '%')
+                    ->orWhereHas('blog_category', function ($q) use ($queryParam, $isPsql) {
+                        $q->where('name', $isPsql ? 'ILIKE' : 'LIKE', '%' . strtolower($queryParam) . '%');
                     })
                     ->orderBy('created_at', 'desc')->paginate(10);
             } else {
