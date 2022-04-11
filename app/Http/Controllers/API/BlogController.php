@@ -9,6 +9,7 @@ use App\Models\BlogGallery;
 use App\Models\Visitor;
 use App\Helpers\ResponseFormatter;
 use Config;
+use App\Models\Comment;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
@@ -245,11 +246,12 @@ class BlogController extends Controller
             $totalBlog = Blog::count();
             // get visitor from model and pluck column views and count it
             $totalVisitor = Visitor::sum('total_view');
-
+            $totalComment = Comment::count();
             return ResponseFormatter::success([
                 'blogs' => $blogs,
                 'total_blog' => $totalBlog,
                 'total_visitor' => $totalVisitor,
+                'comment' => $totalComment,
             ], 'Recent Blogs');
         } catch (Exception $e) {
             return ResponseFormatter::error([
