@@ -30,6 +30,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/admin/blogs', [BlogController::class, 'createBlog']);
     Route::get('/admin/blogs', [BlogController::class, 'getAllBlogWithoutPaginate']);
     Route::put('/admin/blogs/{id}', [BlogController::class, 'editBlog']);
+    Route::delete('/admin/blogs/{id}', [BlogController::class, 'deleteBlog']);
     Route::get('/admins', [UserController::class, 'getUserData']);
     Route::post('/admin/categories', [CategoryController::class, 'createCategory']);
     Route::put('/admin/categories/{id}', [CategoryController::class, 'editCategory']);
