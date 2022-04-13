@@ -34,6 +34,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/admins', [UserController::class, 'getUserData']);
     Route::post('/admin/categories', [CategoryController::class, 'createCategory']);
     Route::put('/admin/categories/{id}', [CategoryController::class, 'editCategory']);
+    Route::delete('/admin/categories/{id}', [CategoryController::class, 'deleteCategory']);
     Route::post('/admin/photos', [PhotoController::class, 'uploadPhoto']);
 });
 Route::get('/blog/{id}', [BlogController::class, 'getDetailBlog']);
