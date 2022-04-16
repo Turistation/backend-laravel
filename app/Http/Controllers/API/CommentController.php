@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Helpers\CommentException;
 use App\Helpers\CommentsPostedVeryOften;
 use App\Helpers\ResponseFormatter;
 use App\Http\Controllers\Controller;
@@ -14,9 +15,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class CommentController extends Controller
-{   
+{
     protected $checkComment;
-    // make construct and add CommentsPostedVeryOften::class->detect($request->ip(), $request->header('User-Agent'));
+    // make construct and add CommentsPostedVeryOften::class->detect($request->ip());
     public function __construct()
     {
         $this->checkComment = new CommentsPostedVeryOften();
@@ -27,7 +28,7 @@ class CommentController extends Controller
         // create comment from model and post it to database
         try {
             // resolve(Spam::class)->detect(request('body'));
-            $this->checkComment->detect($request->ip(), $request->header('User-Agent'));
+            $this->checkComment->detect($request->ip());
             $rules = [
                 'comment' => ['required', 'string', 'max:255'],
                 'name' => ['required', 'string'],
@@ -48,12 +49,17 @@ class CommentController extends Controller
             return ResponseFormatter::success([
                 'comment' => $comment,
             ], 'Comment Created');
+        } catch (CommentException $e) {
+            return ResponseFormatter::error([
+                'message' => 'bad request',
+                'error' => $e->getMessage(),
+            ], 'Bad Request', 400);
         } catch (\Throwable $e) {
             return ResponseFormatter::error([
                 'message' => 'Something went wrong',
                 'error' => $e->getMessage(),
             ], 'Server Error', 500);
-        } 
+        }
     }
 
     public function showCommentByBlogId(Request $request)

@@ -20,14 +20,13 @@ class Comment extends Model
         'star',
         'blogs_id',
         'ip_address',
-        'user_agent'
     ];
 
     public function blog()
-    {   
+    {
         return $this->belongsTo(Blog::class, 'blogs_id', 'id');
     }
-    
+
     public function getLatestCommentByIp()
     {
         return $this->comments()->latest()->first();

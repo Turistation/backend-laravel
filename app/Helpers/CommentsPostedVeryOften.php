@@ -3,9 +3,7 @@
 namespace App\Helpers;
 
 use App\Models\Comment;
-use App\User;
 use Carbon\Carbon;
-use Exception;
 
 class CommentsPostedVeryOften
 {
@@ -13,20 +11,19 @@ class CommentsPostedVeryOften
      * Detect spam
      *
      * @param  string $body
-     * @throws \Exception
+     * @throws \CommentException
      */
-    public function detect($requestedIp, $userAgent)
+    public function detect($requestedIp)
     {
         // where ip address and user agent
         $comment = Comment::where('ip_address', $requestedIp)
-            ->orWhere('user_agent', $userAgent)
             ->latest()
             ->first();
 
         if ($comment) {
             $data = $this->prepareCommonData($comment);
             if ($comment->canUserPostComment($data)) {
-                throw new Exception("You can post only once in {$data["userCommentFrequency"]} seconds.");
+                throw new CommentException("You can post only once in {$data["userCommentFrequency"]} seconds.");
             }
         }
     }
