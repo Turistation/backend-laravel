@@ -13,10 +13,10 @@ class CommentsPostedVeryOften
      * @param  string $body
      * @throws \CommentException
      */
-    public function detect($requestedIp)
+    public function detect($requestedIp, $blogId)
     {
         // where ip address and user agent
-        $comment = Comment::where('ip_address', $requestedIp)
+        $comment = Comment::where('ip_address', $requestedIp)->where('blogs_id', $blogId)
             ->latest()
             ->first();
 

@@ -27,8 +27,6 @@ class CommentController extends Controller
     {
         // create comment from model and post it to database
         try {
-            // resolve(Spam::class)->detect(request('body'));
-            $this->checkComment->detect($request->ip());
             $rules = [
                 'comment' => ['required', 'string', 'max:255'],
                 'name' => ['required', 'string'],
@@ -42,8 +40,10 @@ class CommentController extends Controller
             }
 
             $data = $request->all();
+
+            $this->checkComment->detect($request->ip(), $data['blogs_id']);
+
             $data['ip_address'] = $request->ip();
-            $data['user_agent'] = $request->header('User-Agent');
             $comment = Comment::create($data);
 
             return ResponseFormatter::success([
