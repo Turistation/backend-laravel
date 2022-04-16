@@ -134,6 +134,10 @@ return [
     |
     */
 
+    'spam_detection' =>[
+        'user_can_comment_once_in' => env('APP_SPAM_DETECTION_USER_CAN_COMMENT_ONCE_IN', 60),
+    ],
+
     'providers' => [
 
         /*
