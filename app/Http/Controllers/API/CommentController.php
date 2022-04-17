@@ -32,6 +32,7 @@ class CommentController extends Controller
                 'name' => ['required', 'string'],
                 'star' => ['required', 'integer'],
                 'blogs_id' => ['required', 'integer'],
+                'ip' => ['required', 'string'],
             ];
 
             $validator = Validator::make($request->all(), $rules);
@@ -41,9 +42,9 @@ class CommentController extends Controller
 
             $data = $request->all();
 
-            $this->checkComment->detect($request->ip(), $data['blogs_id']);
+            $this->checkComment->detect($data['ip'], $data['blogs_id']);
 
-            $data['ip_address'] = $request->ip();
+            $data['ip_address'] = $data['ip'];
             $comment = Comment::create($data);
 
             return ResponseFormatter::success([

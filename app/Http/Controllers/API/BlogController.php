@@ -49,7 +49,7 @@ class BlogController extends Controller
     {
         try {
             $data = Visitor::where('blog_id', $request->route('id'))->first();
-            error_log(print_r($data, true));
+
             if ($data) {
                 $data->total_view = $data->total_view + 1;
                 $data->save();
