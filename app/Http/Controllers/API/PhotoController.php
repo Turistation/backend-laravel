@@ -113,4 +113,20 @@ class PhotoController extends Controller
             ], 'Photos Not Fetched', 500);
         }
     }
+
+    public function getAllPhotoWithoutPaginate()
+    {
+        try {
+            $photos = Photo::all();
+            return ResponseFormatter::success([
+                'message' => 'Photos fetched successfully',
+                'photos' => $photos,
+            ], 'Photos Fetched');
+        } catch (Exception $e) {
+            return ResponseFormatter::error([
+                'message' => 'Something went wrong',
+                'error' => $e->getMessage(),
+            ], 'Photos Not Fetched', 500);
+        }
+    }
 }

@@ -36,6 +36,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('/admin/categories/{id}', [CategoryController::class, 'editCategory']);
     Route::delete('/admin/categories/{id}', [CategoryController::class, 'deleteCategory']);
     Route::post('/admin/photos', [PhotoController::class, 'uploadPhoto']);
+    Route::get('/admin/photos', [PhotoController::class, 'getAllPhotoWithoutPaginate']);
 });
 Route::get('/blog/{id}', [BlogController::class, 'getDetailBlog']);
 
