@@ -302,6 +302,7 @@ class BlogController extends Controller
                         break;
                     default:
                         $sql = $sql->orderBy('created_at', 'desc');
+                        break;
                 }
 
             }else{
@@ -317,8 +318,10 @@ class BlogController extends Controller
                         break;
                     case "date-old-to-new":
                         $sql = $sql->orderBy('created_at', 'asc');
+                        break;
                     default:
                         $sql = $sql->orderBy('created_at', 'desc');
+                        break;
                 }
             }else{
                 $sql = $sql->orderBy('created_at', 'desc');
