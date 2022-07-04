@@ -270,49 +270,40 @@ class BlogController extends Controller
             $queryParam = $request->query('query');
             $sortRating = $request->query('rating');
             $sortDate = $request->query('date');
-            // query?=
 
             $sql = Blog::with(['blog_category', 'admin_blog', 'photos', 'blog_comments']);
-            // if ($queryParam) {
-            //     $blogs = Blog::with(['blog_category', 'admin_blog', 'photos', 'blog_comments'])
-            //         ->where('title', $isPsql ? 'ILIKE' : 'LIKE', '%' . strtolower($queryParam) . '%')
-            //         ->orWhereHas('blog_category', function ($q) use ($queryParam, $isPsql) {
-            //             $q->where('name', $isPsql ? 'ILIKE' : 'LIKE', '%' . strtolower($queryParam) . '%');
-            //         })
-            //         ->orderBy('created_at', 'desc')->paginate(10);
-            // } else {
-            //     $blogs = Blog::with(['blog_category', 'admin_blog', 'photos', 'blog_comments'])->orderBy('created_at', 'desc')->paginate(10);
-            // }
-            if($queryParam){
+
+            if ($queryParam) {
                 $sql = $sql->where('title', $isPsql ? 'ILIKE' : 'LIKE', '%' . strtolower($queryParam) . '%')
-                        ->orWhereHas('blog_category', function ($q) use ($queryParam, $isPsql) {
-                            $q->where('name', $isPsql ? 'ILIKE' : 'LIKE', '%' . strtolower($queryParam) . '%');
-                        });
+                    ->orWhereHas('blog_category', function ($q) use ($queryParam, $isPsql) {
+                        $q->where('name', $isPsql ? 'ILIKE' : 'LIKE', '%' . strtolower($queryParam) . '%');
+                    });
             }
 
-            if($sortRating){
+            if ($sortRating) {
                 switch ($sortRating) {
                     case "rating-high-to-low":
-                        $sql = $sql->withAvg('blog_comments', 'star')
-                        ->orderBy('blog_comments_avg_star', 'desc');
+                        $sql = $sql->select(DB::raw('*, COALESCE((select avg(comments.star)
+                        from "comments"
+                        where "blogs"."id" = "comments"."blogs_id"), 0)
+                           as "blog_comments_avg_star"'))
+                            ->orderBy('blog_comments_avg_star', 'desc');
                         break;
                     case "rating-low-to-high":
-                        $sql = $sql->withAvg('blog_comments', 'star')
-                        ->orderBy('blog_comments_avg_star', 'asc');
+                        $sql = $sql->select(DB::raw('*, COALESCE((select avg(comments.star)
+                        from "comments"
+                        where "blogs"."id" = "comments"."blogs_id"), 0)
+                           as "blog_comments_avg_star"'))
+                            ->orderBy('blog_comments_avg_star', 'asc');
                         break;
                     default:
                         $sql = $sql->orderBy('created_at', 'desc');
                         break;
                 }
-
-            }else{
-                $sql = $sql->orderBy('created_at', 'desc');
             }
 
-            if($sortDate)
-            {
-                switch($sortDate)
-                {
+            if ($sortDate) {
+                switch ($sortDate) {
                     case "date-new-to-old":
                         $sql = $sql->orderBy('created_at', 'desc');
                         break;
@@ -323,12 +314,16 @@ class BlogController extends Controller
                         $sql = $sql->orderBy('created_at', 'desc');
                         break;
                 }
-            }else{
+            }
+
+            if (!$sortDate && !$sortRating) {
                 $sql = $sql->orderBy('created_at', 'desc');
             }
-            
-            error_log($sql->toSql());
+
+
             $blogs = $sql->paginate(10);
+
+            error_log($sql->toSql());
 
             return ResponseFormatter::success([
                 'blogs' => $blogs,
